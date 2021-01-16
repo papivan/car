@@ -15,16 +15,17 @@ struct Motor {
     pinMode(enable1Pin, OUTPUT);
     
     // configure LED PWM functionalitites
-    ledcSetup(pwmChannel, freq, resolution);
+//    ledcSetup(pwmChannel, freq, resolution);
     
     // attach the channel to the GPIO to be controlled
-    ledcAttachPin(enable1Pin, pwmChannel);
+//    ledcAttachPin(enable1Pin, pwmChannel);
   }
 
-  void test() {
+  void test(bool full=false) {
     // testing
-    Serial.print("Testing DC Motor...");
+    Serial.println("Testing DC Motor...");
 
+    analogWrite(enable1Pin, 130);
     // Move the DC motor forward at maximum speed
     Serial.println("Moving Forward");
     digitalWrite(motor1Pin1, LOW);
@@ -48,12 +49,15 @@ struct Motor {
     digitalWrite(motor1Pin1, LOW);
     digitalWrite(motor1Pin2, LOW);
     delay(1000);
-   
+
+   if(!full)
+    return;
     // Move DC motor forward with increasing speed
     digitalWrite(motor1Pin1, HIGH);
     digitalWrite(motor1Pin2, LOW);
     while (dutyCycle <= 255){
-      ledcWrite(pwmChannel, dutyCycle);   
+//      ledcWrite(pwmChannel, dutyCycle);   
+      analogWrite(enable1Pin, dutyCycle);
       Serial.print("Forward with duty cycle: ");
       Serial.println(dutyCycle);
       dutyCycle = dutyCycle + 5;
