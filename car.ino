@@ -1,17 +1,17 @@
 #include "Motor.h"
-#include "intpult.h"
-#include "FlySkyIBus.h"
-
+Motor motor(2, 3, 4);
 
 #define USE_FS_PWM
 
-Motor motor(25, 32,33);
 #ifdef USE_FS_PWM
-FlySkyCanals flySky(13, 14, 27, 26);
+  #include "intpult.h"
+  FlySkyCanals flySky(14, 15, 16, 17);
+  //FlySkyCanals flySky(15);
 #else
-HardwareSerial FSkySerial(1);
-uint16_t ChVal[10];
-uint16_t ChValOld[10];
+  #include "FlySkyIBus.h"
+  HardwareSerial FSkySerial(1);
+  uint16_t ChVal[10];
+  uint16_t ChValOld[10];
 #endif
 
 void setup() {
@@ -29,8 +29,10 @@ void setup() {
 #endif
 }
  
+uint16_t min_speed = 0;
+uint16_t max_speed = 0;
 void loop() {
-  motor.test();
+//  motor.test(true); return;
 
 #ifdef USE_FS_PWM
   long mic;
@@ -38,14 +40,27 @@ void loop() {
   flySky.scan();
   
   mic = micros() - mic;
-  Serial.print(mic); Serial.print(" = ");
+//  Serial.print(mic); Serial.print(" = ");
   
-  for(int i=0; i<flySky.chNum; ++i) {
-    Serial.print(flySky.canals[i].chTime);
-    Serial.print(" = ");
-  }
-  Serial.println("==========================================");
-  delay(200);
+//  for(int i=0; i<flySky.chNum; ++i) {
+//    Serial.print(flySky.canals[i].chTime);
+//    Serial.print(" = ");
+//  }
+//  Serial.println("==========================================");
+//  delay(200);
+  uint16_t speed = flySky.canals[0].chTime;
+  if(!min_speed || speed<min_speed)
+    min_speed = speed;
+  if(!max_speed || speed>max_speed)
+    max_speed = speed;
+  uint16_t stop_speed = (min_speed+max_speed)/2;
+  if(speed< stop_speed-10)
+    motor.moveBW(speed, 1.*(stop_speed-speed)*255/(max_speed-stop_speed));
+  else if(speed > stop_speed+10)
+    motor.moveFW(speed, 1.*(speed-stop_speed)*255/(max_speed-stop_speed));
+  else
+    motor.stop(speed);
+
 
 #else
   
